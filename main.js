@@ -114,7 +114,7 @@
     prevBtn.addEventListener('click', ()=> { prevSlide(); resetTimer(); });
 
     function startTimer(){
-      carouselTimer = setInterval(nextSlide, 2000);
+      carouselTimer = setInterval(nextSlide, 5000);
     }
     function resetTimer(){
       clearInterval(carouselTimer);
@@ -131,3 +131,53 @@
     window.addEventListener('load', ()=> {
       if(!intro.parentElement) page.classList.add('visible');
     });
+
+    // Hide/show playPause when footer scrolls into view
+    ;(function(){
+      const footer = document.querySelector('footer');
+      const playBtn = document.getElementById('playPause');
+      // prefer hiding the whole music control if available
+      const musicControlEl = document.getElementById('musicControl') || playBtn;
+
+      if(!footer || !playBtn) return;
+
+      // apply smooth transition styles (only once)
+      musicControlEl.style.transition = musicControlEl.style.transition || 'opacity .28s ease, transform .28s ease';
+
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if(entry.isIntersecting){
+            // footer is visible -> hide the control
+            musicControlEl.style.opacity = '0';
+            musicControlEl.style.transform = 'translateY(10px)';
+            musicControlEl.style.pointerEvents = 'none';
+          } else {
+            // footer not visible -> show the control
+            musicControlEl.style.opacity = '1';
+            musicControlEl.style.transform = 'translateY(0)';
+            musicControlEl.style.pointerEvents = '';
+          }
+        });
+      }, { root: null, threshold: 0 });
+
+      io.observe(footer);
+
+      // initialize state in case footer is already visible on load
+      const rect = footer.getBoundingClientRect();
+      if(rect.top < window.innerHeight && rect.bottom > 0){
+        musicControlEl.style.opacity = '0';
+        musicControlEl.style.pointerEvents = 'none';
+      }
+
+      // keep behaviour on resize (re-evaluate)
+      window.addEventListener('resize', () => {
+        const r = footer.getBoundingClientRect();
+        if(r.top < window.innerHeight && r.bottom > 0){
+          musicControlEl.style.opacity = '0';
+          musicControlEl.style.pointerEvents = 'none';
+        } else {
+          musicControlEl.style.opacity = '1';
+          musicControlEl.style.pointerEvents = '';
+        }
+      });
+    })();
